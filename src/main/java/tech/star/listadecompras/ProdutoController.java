@@ -11,24 +11,24 @@ import java.util.Map;
 @RestController
 @RequestMapping("/produtos")
 public class ProdutoController {
-    private final List<Produto> produtos = new ArrayList<>();
+    private final GerenciamentoDeLista produtos = new GerenciamentoDeLista();
 
     @PostMapping
     public ResponseEntity<Produto> adicionarProduto(@RequestBody Produto produto){
 
-        produtos.add(produto);
+        produtos.adicionarProduto(produto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(produto);
     }
 
     @GetMapping
     public List<Produto> listarProdutos(){
-        return produtos;
+        return produtos.listarProdutos();
     }
 
     @DeleteMapping("/{produto}")
     public ResponseEntity<?> removerProduto(@PathVariable String produto){
-        boolean removido = produtos.removeIf(p -> p.getNome().equalsIgnoreCase(produto));
+        boolean removido = produtos.removerProduto(produto);
 
         if (!removido){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Produto não encontrado."));
@@ -40,18 +40,18 @@ public class ProdutoController {
     @PutMapping("/{produto}/comprado")
     public ResponseEntity<?> marcarComprado(@PathVariable String produto){
 
-        for (Produto p : produtos){
-            if (p.getNome().equalsIgnoreCase(produto)){
-                p.setComprado(true);
-                return ResponseEntity.ok(Map.of("mensagem", "Produto marcado como comprado."));
-            }
+        Produto produtoEncontrado = produtos.marcarComprado(produto);
+
+        if (produtoEncontrado == null){
+            return ResponseEntity.ok(Map.of("mensagem", "Produto não encontrado."));
         }
 
-        return ResponseEntity.ok(Map.of("mensagem", "Produto não encontrado."));
+
+        return ResponseEntity.ok(produtoEncontrado);
     }
     @GetMapping("/total")
     public ResponseEntity<?> quantidadeProdutos(){
 
-        return ResponseEntity.ok(Map.of("total", produtos.size()));
+        return ResponseEntity.ok(Map.of("total", produtos.quantidadeProdutos()));
     }
 }
